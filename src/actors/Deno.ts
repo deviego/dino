@@ -1,9 +1,20 @@
 // @ts-ignore
 import ml5 from "ml5";
+import { Brain, BrainInputs } from "../brain";
+import DinoGame from "../game/DinoGame";
 import { settings } from "../settings";
 import Actor from "./Actor";
+import { pipe, sortBy, prop, last } from "ramda";
+
+interface DenoOptions {
+  imageData: ImageData;
+  game: DinoGame;
+  brain?: Brain;
+}
 
 export default class Deno extends Actor {
+  brain: Brain;
+  game: DinoGame;
   isDucking = false;
   legFrames = 0;
   legShowing = "Left";
@@ -13,17 +24,17 @@ export default class Deno extends Actor {
   legsRate = 0;
   lift = 0;
   gravity = 0;
-  brain: any;
-  // alive = true
-  // score = 0
-  // fitness = 0
+  alive = true;
+  score = 0;
+  fitness = 0;
 
-  constructor(imageData: ImageData, brain?: any) {
-    super(imageData);
+  constructor(options: DenoOptions) {
+    super(options.imageData);
+    this.game = options.game;
     this.setSprite(`dino${this.legShowing}Leg`);
 
-    if (brain) {
-      this.brain = brain;
+    if (options.brain) {
+      this.brain = options.brain;
     } else {
       this.brain = ml5.neuralNetwork(settings.neuralNetworkConfig);
     }
@@ -44,6 +55,9 @@ export default class Deno extends Actor {
     this.setSprite(`dino${this.legShowing}Leg`);
     this.vVelocity = 0;
     this.relativeY = 0;
+    this.alive = true;
+    this.fitness = 0;
+    this.score = 0;
   }
 
   jump() {
@@ -60,12 +74,10 @@ export default class Deno extends Actor {
 
   nextFrame() {
     if (this.vVelocity !== null) {
-      // use gravity to gradually decrease vVelocity
       this.vVelocity += this.gravity;
       this.relativeY += this.vVelocity;
     }
 
-    // stop falling once back down to the ground
     if (this.relativeY > 0) {
       this.vVelocity = 0;
       this.relativeY = 0;
@@ -92,6 +104,61 @@ export default class Deno extends Actor {
       }
 
       this.legFrames++;
+    }
+  }
+
+  think(options: BrainInputs) {
+    const inputs = [
+      options.cactus.distance / this.game.width,
+      options.cactus.height / this.game.height,
+      options.cactus.speed / 50,
+      // options.bird.distance,
+      // options.bird.height,
+      // options.speed,
+    ];
+
+    const outputs = this.brain.classifySync(inputs);
+    const result = pipe(
+      sortBy(prop("confidence")),
+      last,
+      prop("label")
+    )(outputs);
+
+    if (result === "jump") {
+      return this.jump();
+    }
+
+    if (result === "duck") {
+      return this.duck(true);
+    }
+
+    if (result === "walk") {
+      if (this.isDucking) {
+        this.duck(false);
+      }
+    }
+
+    return;
+  }
+
+  run() {
+    const cactus = this.game.state.cacti[0];
+
+    if (!cactus) return;
+
+    const cactusX = cactus.x;
+    const cactusDistance = cactusX - this.x;
+
+    this.think({
+      cactus: {
+        distance: cactusDistance,
+        height: cactus.height,
+        speed: cactus.speed,
+      },
+    });
+
+    if (this.hits([this.game.state.cacti[0], this.game.state.birds[0]])) {
+      this.alive = false;
     }
   }
 }

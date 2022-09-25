@@ -9,10 +9,13 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/ramda": "^0.28.15",
     "typescript": "^4.6.4",
     "vite": "^3.1.0"
   },
   "dependencies": {
-    "ml5": "^0.12.2"
+    "ml5": "^0.12.2",
+    "mobx": "^6.6.2",
+    "ramda": "^0.28.0"
   }
 }
