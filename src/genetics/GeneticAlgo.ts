@@ -1,14 +1,22 @@
-import { Deno } from "./Deno.js";
-import { settings } from "./settings.js";
+
+import Deno from "../actors/Deno";
+import { settings } from "../settings";
+
 
 export class GeneticAlgo {
-  denos: Deno[] = []
-  deads = 0
-  
-  constructor() {
-  }
+  denos: Deno[] = [];
+  deads = 0;
 
-  //Function for the next generation
+  constructor() {}
+
+
+  setup() {
+    for (let i = 0; i < settings.populationLength; i++) {
+    this.denos.push(new Deno())
+    }
+  }
+  
+  
   nextGen() {
     console.log("Adding generation...");
 
@@ -50,7 +58,6 @@ export class GeneticAlgo {
     return this.denos[index].brain;
   }
 
-  // Normalize all fitness values
   calculateFitness() {
     let sum = 0;
 
