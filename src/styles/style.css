@@ -13,12 +13,29 @@ body {
   background-color: #f7f7f7;
   display: flex;
   justify-content: center;
+  flex-direction: column;
+}
+
+.infos {
+  display: flex;
+  flex-direction: column;
+  width: 600px;
+  margin-bottom: 50px;
 }
 
 @keyframes octocat-wave {
-  0%, 100% { transform: rotate(0) }
-  20%, 60% { transform: rotate(-25deg) }
-  40%, 80% { transform: rotate(10deg) }
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20%,
+  60% {
+    transform: rotate(-25deg);
+  }
+  40%,
+  80% {
+    transform: rotate(10deg);
+  }
 }
 
 .github-corner:hover .octo-arm {
