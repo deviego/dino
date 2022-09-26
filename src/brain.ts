@@ -6,6 +6,7 @@ export interface Brain {
 }
 
 export interface BrainInputs {
+  
   cactus: {
     distance: number;
     height: number;

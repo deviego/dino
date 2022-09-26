@@ -15,11 +15,6 @@ export class GeneticAlgo {
   }
 
   setup() {
-<<<<<<< HEAD
-    // for (let i = 0; i < settings.populationLength; i++) {
-    // this.denos.push(new Deno())
-    // }
-=======
     for (let i = 0; i < settings.populationLength; i++) {
       const dino = new Deno({
         imageData: this.game.spriteImageData!,
@@ -42,7 +37,6 @@ export class GeneticAlgo {
       this.nextGen();
       this.game.resetGame();
     };
->>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
   }
 
   nextGen() {

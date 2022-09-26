@@ -24,16 +24,9 @@ export default class Deno extends Actor {
   legsRate = 0;
   lift = 0;
   gravity = 0;
-<<<<<<< HEAD
-  brain: any;
-  alive = true
-  fitness = 0
-  score = 0;
-=======
   alive = true;
   score = 0;
   fitness = 0;
->>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
 
   constructor(options: DenoOptions) {
     super(options.imageData);
@@ -128,7 +121,7 @@ export default class Deno extends Actor {
     const result = pipe(
       sortBy(prop("confidence")),
       last,
-      prop("label")
+      prop("label"), 
     )(outputs);
 
     if (result === "jump") {
