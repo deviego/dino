@@ -11,9 +11,9 @@ export class GeneticAlgo {
 
 
   setup() {
-    for (let i = 0; i < settings.populationLength; i++) {
-    this.denos.push(new Deno())
-    }
+    // for (let i = 0; i < settings.populationLength; i++) {
+    // this.denos.push(new Deno())
+    // }
   }
   
   

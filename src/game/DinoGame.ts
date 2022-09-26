@@ -14,25 +14,25 @@ import {
 import GameRunner from "./GameRunner";
 import Actor from "../actors/Actor";
 
-type GameSettings = typeof defaultSettings 
+type GameSettings = typeof defaultSettings;
 
 interface GameState {
-  settings: GameSettings,
-  birds: Bird[],
-  cacti: Cactus[],
-  clouds: Cloud[],
-  dino: Deno | null,
-  gameOver: boolean,
-  groundX: number,
-  groundY: number,
-  isRunning: boolean,
-  level: number,
+  settings: GameSettings;
+  birds: Bird[];
+  cacti: Cactus[];
+  clouds: Cloud[];
+  dinos: Deno[];
+  gameOver: boolean;
+  groundX: number;
+  groundY: number;
+  isRunning: boolean;
+  level: number;
   score: {
-    blinkFrames: number,
-    blinks: number,
-    isBlinking: boolean,
-    value: number,
-  },
+    blinkFrames: number;
+    blinks: number;
+    isBlinking: boolean;
+    value: number;
+  };
 }
 
 /*
@@ -62,14 +62,14 @@ export default class DinoGame extends GameRunner {
   canvasCtx: CanvasRenderingContext2D;
   width = 0;
   height = 0;
-  spriteImage: HTMLImageElement| null = null;
+  spriteImage: HTMLImageElement | null = null;
   spriteImageData: ImageData | null = null;
   state: GameState = {
     settings: { ...defaultSettings },
     birds: [],
     cacti: [],
     clouds: [],
-    dino: null,
+    dinos: [],
     gameOver: false,
     groundX: 0,
     groundY: 0,
@@ -88,7 +88,6 @@ export default class DinoGame extends GameRunner {
 
     this.canvas = this.createCanvas(width, height);
     this.canvasCtx = this.canvas.getContext("2d")!;
-
   }
 
   createCanvas(width: number, height: number) {
@@ -117,14 +116,18 @@ export default class DinoGame extends GameRunner {
     ]);
     this.spriteImage = spriteImage;
     this.spriteImageData = getImageData(spriteImage);
-    const dino = new Deno(this.spriteImageData);
 
-    dino.legsRate = settings.dinoLegsRate;
-    dino.lift = settings.dinoLift;
-    dino.gravity = settings.dinoGravity;
-    dino.x = 25;
-    dino.baseY = this.height - settings.dinoGroundOffset;
-    this.state.dino = dino;
+    for (let index = 0; index < 10; index++) {
+      const dino = new Deno(this.spriteImageData);
+
+      dino.legsRate = settings.dinoLegsRate;
+      dino.lift = settings.dinoLift;
+      dino.gravity = settings.dinoGravity;
+      dino.x = 25;
+      dino.baseY = this.height - settings.dinoGroundOffset;
+      this.state.dinos.push(dino);
+    }
+
     this.state.groundY = this.height - sprites.ground.h / 2;
   }
 
@@ -132,7 +135,7 @@ export default class DinoGame extends GameRunner {
     const { state } = this;
 
     this.drawBackground();
-    this.drawFPS()
+    this.drawFPS();
     this.drawGround();
     this.drawClouds();
     this.drawDino();
@@ -145,7 +148,15 @@ export default class DinoGame extends GameRunner {
         this.drawBirds();
       }
 
-      if (state.dino?.hits([state.cacti[0], state.birds[0]])) {
+      
+
+      state.dinos.forEach((dino) => {
+        if (dino.hits([state.cacti[0], state.birds[0]])) {
+          dino.alive = false;
+        }
+      });
+
+      if (state.dinos.every((dino) => !dino.alive)) {
         playSound("game-over");
         state.gameOver = true;
       }
@@ -161,32 +172,32 @@ export default class DinoGame extends GameRunner {
   onInput(type: string) {
     const { state } = this;
 
-    if(!state.dino) return
-
     switch (type) {
       case "jump": {
         if (state.isRunning) {
-          if (state.dino.jump()) {
-            playSound("jump");
-          }
-        } else {
-          this.resetGame();
-          state.dino.jump();
-          playSound("jump");
+          state.dinos.forEach((dino) => {
+            if (dino.jump()) {
+              playSound("jump");
+            }
+          });
         }
         break;
       }
 
       case "duck": {
         if (state.isRunning) {
-          state.dino.duck(true);
+          state.dinos.forEach((dino) => {
+            dino.duck(true);
+          });
         }
         break;
       }
 
       case "stop-duck": {
         if (state.isRunning) {
-          state.dino.duck(false);
+          state.dinos.forEach((dino) => {
+            dino.duck(false);
+          });
         }
         break;
       }
@@ -194,10 +205,10 @@ export default class DinoGame extends GameRunner {
   }
 
   resetGame() {
-    if(!this.state.dino) return
+    this.state.dinos.forEach((dino) => {
+      dino.reset();
+    });
 
-    
-    this.state.dino.reset();
     Object.assign(this.state, {
       settings: { ...defaultSettings },
       birds: [],
@@ -245,11 +256,8 @@ export default class DinoGame extends GameRunner {
   }
 
   increaseDifficulty() {
-    const { birds, cacti, clouds, dino, settings } = this.state;
+    const { birds, cacti, clouds, dinos, settings } = this.state;
 
-    if(!dino) return
-
-    
     const { bgSpeed, cactiSpawnRate, dinoLegsRate } = settings;
     const { level } = this.state;
 
@@ -278,7 +286,9 @@ export default class DinoGame extends GameRunner {
       cloud.speed = settings.bgSpeed;
     }
 
-    dino.legsRate = settings.dinoLegsRate;
+    dinos.forEach((dino) => {
+      dino.legsRate = settings.dinoLegsRate;
+    });
   }
 
   updateScore() {
@@ -346,22 +356,22 @@ export default class DinoGame extends GameRunner {
   }
 
   drawDino() {
-    const { dino } = this.state;
+    const { dinos } = this.state;
 
-    if(!dino) return 
-    if(!dino.sprite) return 
-    
-    dino.nextFrame();
-    this.paintSprite(dino.sprite, dino.x, dino.y);
+    dinos.forEach((dino) => {
+      if (!dino.sprite) return;
+
+      dino.nextFrame();
+      this.paintSprite(dino.sprite, dino.x, dino.y);
+    });
   }
 
   drawCacti() {
     const { state } = this;
     const { cacti, settings } = state;
 
-    if(!this.spriteImageData) return
+    if (!this.spriteImageData) return;
 
-    
     this.progressInstances(cacti);
     if (this.frameCount % settings.cactiSpawnRate === 0) {
       // randomly either do or don't add cactus
@@ -379,9 +389,8 @@ export default class DinoGame extends GameRunner {
   drawBirds() {
     const { birds, settings } = this.state;
 
-    if(!this.spriteImageData) return
+    if (!this.spriteImageData) return;
 
-    
     this.progressInstances(birds);
     if (this.frameCount % settings.birdSpawnRate === 0) {
       // randomly either do or don't add bird
@@ -459,9 +468,9 @@ export default class DinoGame extends GameRunner {
     }
   }
 
-  paintInstances(instances:Actor[]) {
+  paintInstances(instances: Actor[]) {
     for (const instance of instances) {
-    if(!instance.sprite) continue 
+      if (!instance.sprite) continue;
 
       this.paintSprite(instance.sprite, instance.x, instance.y);
     }
@@ -470,9 +479,8 @@ export default class DinoGame extends GameRunner {
   paintSprite(spriteName: string, dx: number, dy: number) {
     const { h, w, x, y } = sprites[spriteName];
 
+    if (!this.spriteImage) return;
 
-    if(!this.spriteImage) return 
-    
     this.canvasCtx.drawImage(
       this.spriteImage,
       x,
@@ -486,7 +494,12 @@ export default class DinoGame extends GameRunner {
     );
   }
 
-  paintText(text: string, x: number, y: number, opts: { font?: any; size?: any; align?: any; baseline?: any; color?: any; }) {
+  paintText(
+    text: string,
+    x: number,
+    y: number,
+    opts: { font?: any; size?: any; align?: any; baseline?: any; color?: any }
+  ) {
     const { font = "serif", size = "12px" } = opts;
     const { canvasCtx } = this;
 

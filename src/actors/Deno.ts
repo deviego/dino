@@ -14,9 +14,9 @@ export default class Deno extends Actor {
   lift = 0;
   gravity = 0;
   brain: any;
-  // alive = true
-  // score = 0
-  // fitness = 0
+  alive = true
+  fitness = 0
+  score = 0;
 
   constructor(imageData: ImageData, brain?: any) {
     super(imageData);
