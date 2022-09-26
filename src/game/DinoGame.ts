@@ -13,6 +13,7 @@ import {
 } from "../utils";
 import GameRunner from "./GameRunner";
 import Actor from "../actors/Actor";
+import { makeObservable } from "mobx";
 
 type GameSettings = typeof defaultSettings;
 
@@ -82,12 +83,28 @@ export default class DinoGame extends GameRunner {
       value: 0,
     },
   };
+  bestScore = 0;
+  onEndGame: (() => void) | null = null;
 
   constructor(width: number, height: number) {
     super();
+    makeObservable(
+      this,
+      {
+        bestScore: true,
+      },
+      { autoBind: true }
+    );
 
     this.canvas = this.createCanvas(width, height);
     this.canvasCtx = this.canvas.getContext("2d")!;
+<<<<<<< HEAD
+=======
+  }
+
+  setBestScore(value: number) {
+    this.bestScore = value;
+>>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
   }
 
   createCanvas(width: number, height: number) {
@@ -109,14 +126,15 @@ export default class DinoGame extends GameRunner {
   }
 
   async preload() {
-    const { settings } = this.state;
     const [spriteImage] = await Promise.all([
       loadImage("/sprite.png"),
       loadFont("/PressStart2P-Regular.ttf", "PressStart2P"),
     ]);
+
     this.spriteImage = spriteImage;
     this.spriteImageData = getImageData(spriteImage);
 
+<<<<<<< HEAD
     for (let index = 0; index < 10; index++) {
       const dino = new Deno(this.spriteImageData);
 
@@ -128,6 +146,8 @@ export default class DinoGame extends GameRunner {
       this.state.dinos.push(dino);
     }
 
+=======
+>>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
     this.state.groundY = this.height - sprites.ground.h / 2;
   }
 
@@ -148,6 +168,7 @@ export default class DinoGame extends GameRunner {
         this.drawBirds();
       }
 
+<<<<<<< HEAD
       
 
       state.dinos.forEach((dino) => {
@@ -157,6 +178,19 @@ export default class DinoGame extends GameRunner {
       });
 
       if (state.dinos.every((dino) => !dino.alive)) {
+=======
+      let isAllDead = true;
+
+      state.dinos.forEach((dino) => {
+        dino.run();
+
+        if (dino.alive) {
+          isAllDead = false;
+        }
+      });
+
+      if (isAllDead) {
+>>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
         playSound("game-over");
         state.gameOver = true;
       }
@@ -169,6 +203,7 @@ export default class DinoGame extends GameRunner {
     }
   }
 
+<<<<<<< HEAD
   onInput(type: string) {
     const { state } = this;
 
@@ -204,6 +239,8 @@ export default class DinoGame extends GameRunner {
     }
   }
 
+=======
+>>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
   resetGame() {
     this.state.dinos.forEach((dino) => {
       dino.reset();
@@ -228,36 +265,19 @@ export default class DinoGame extends GameRunner {
   }
 
   endGame() {
-    const iconSprite = sprites.replayIcon;
-    const padding = 15;
-
-    this.paintText(
-      "G A M E  O V E R",
-      this.width / 2,
-      this.height / 2 - padding,
-      {
-        font: "PressStart2P",
-        size: "12px",
-        align: "center",
-        baseline: "bottom",
-        color: "#535353",
-      }
-    );
-
-    this.paintSprite(
-      "replayIcon",
-      this.width / 2 - iconSprite.w / 4,
-      this.height / 2 - iconSprite.h / 4 + padding
-    );
-
     this.state.isRunning = false;
+
     this.drawScore();
-    this.stop();
+    // this.stop();
+    if (this.onEndGame) this.onEndGame();
   }
 
   increaseDifficulty() {
     const { birds, cacti, clouds, dinos, settings } = this.state;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
     const { bgSpeed, cactiSpawnRate, dinoLegsRate } = settings;
     const { level } = this.state;
 
@@ -297,6 +317,9 @@ export default class DinoGame extends GameRunner {
     if (this.frameCount % state.settings.scoreIncreaseRate === 0) {
       const oldLevel = state.level;
 
+      state.dinos.forEach((dino) => {
+        dino.score++;
+      });
       state.score.value++;
       state.level = Math.floor(state.score.value / 100);
 
@@ -359,7 +382,11 @@ export default class DinoGame extends GameRunner {
     const { dinos } = this.state;
 
     dinos.forEach((dino) => {
+<<<<<<< HEAD
       if (!dino.sprite) return;
+=======
+      if (!dino.sprite || !dino.alive) return;
+>>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
 
       dino.nextFrame();
       this.paintSprite(dino.sprite, dino.x, dino.y);

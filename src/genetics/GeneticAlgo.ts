@@ -1,22 +1,50 @@
-
+import { makeAutoObservable } from "mobx";
 import Deno from "../actors/Deno";
+import DinoGame from "../game/DinoGame";
 import { settings } from "../settings";
 
-
 export class GeneticAlgo {
-  denos: Deno[] = [];
-  deads = 0;
+  generation = 0;
 
-  constructor() {}
+  constructor(private game: DinoGame) {
+    makeAutoObservable(this, {}, { autoBind: true });
+  }
 
+  get deads() {
+    return this.game.state.dinos.filter((dino) => !dino.alive).length;
+  }
 
   setup() {
+<<<<<<< HEAD
     // for (let i = 0; i < settings.populationLength; i++) {
     // this.denos.push(new Deno())
     // }
+=======
+    for (let i = 0; i < settings.populationLength; i++) {
+      const dino = new Deno({
+        imageData: this.game.spriteImageData!,
+        game: this.game,
+      });
+      const settings = this.game.state.settings;
+
+      dino.legsRate = settings.dinoLegsRate;
+      dino.lift = settings.dinoLift;
+      dino.gravity = settings.dinoGravity;
+      dino.x = 25;
+      dino.baseY = this.game.height - settings.dinoGroundOffset;
+
+      this.game.state.dinos.push(dino);
+    }
+
+    this.game.start().catch(console.error);
+    this.game.resetGame();
+    this.game.onEndGame = () => {
+      this.nextGen();
+      this.game.resetGame();
+    };
+>>>>>>> 60fb402d4c5ea51a237de5d7eb2f93b6c8b59147
   }
-  
-  
+
   nextGen() {
     console.log("Adding generation...");
 
@@ -25,13 +53,17 @@ export class GeneticAlgo {
     this.calculateFitness();
 
     for (let i = 0; i < settings.populationLength; i++) {
+      const currentDino = this.game.state.dinos[i];
+
+      if (currentDino.score > this.game.bestScore) {
+        this.game.setBestScore(currentDino.score);
+      }
+
       newPopulation.push(this.reproduce());
     }
 
-    this.denos = newPopulation;
-    // TODO: reset game
-
-    this.deads = 0;
+    this.game.state.dinos = newPopulation;
+    this.generation++;
   }
 
   reproduce() {
@@ -41,7 +73,20 @@ export class GeneticAlgo {
 
     childBrain.mutate(settings.mutation);
 
-    return new Deno(childBrain);
+    const child = new Deno({
+      imageData: this.game.spriteImageData!,
+      game: this.game,
+      brain: childBrain,
+    });
+    const gameSettings = this.game.state.settings;
+
+    child.legsRate = gameSettings.dinoLegsRate;
+    child.lift = gameSettings.dinoLift;
+    child.gravity = gameSettings.dinoGravity;
+    child.x = 25;
+    child.baseY = this.game.height - gameSettings.dinoGroundOffset;
+
+    return child;
   }
 
   pickOne() {
@@ -49,23 +94,23 @@ export class GeneticAlgo {
     let r = Math.random();
 
     while (r > 0) {
-      r = r - this.denos[index].fitness;
+      r = r - this.game.state.dinos[index].fitness;
       index++;
     }
 
     index--;
 
-    return this.denos[index].brain;
+    return this.game.state.dinos[index].brain;
   }
 
   calculateFitness() {
     let sum = 0;
 
-    for (let deno of this.denos) {
+    for (let deno of this.game.state.dinos) {
       sum += deno.score;
     }
 
-    for (let deno of this.denos) {
+    for (let deno of this.game.state.dinos) {
       deno.fitness = deno.score / sum;
     }
   }
